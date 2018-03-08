@@ -1,0 +1,10 @@
+- images
+  - [formula_perceptron.](formula_perceptron.)
+  - [formula_ReLU.](formula_ReLU.)
+  - [graph_ReLU.](graph_ReLU.)
+  - [graph_sigmoid.](graph_sigmoid.)
+  - [formula_stepfunction.](formula_stepfunction.)
+  - [formula_sigmoid.](formula_sigmoid.)
+  - [picture1.](picture1.)
+  - [graph_stepfunction.](graph_stepfunction.)
+  - [perceptron.](perceptron.)
