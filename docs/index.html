@@ -18,7 +18,7 @@
   <script>
     window.$docsify = {
       name: '컴퓨터 공학 교과서',
-      loadSidebar: true,
+      loadSidebar: '_sidebar.md',
       subMaxLevel: 2,
       search: {
         placeholder: '검색',
@@ -26,7 +26,10 @@
         depth: 3
       },
       auto2top: true,
-      homepage: 'README.md'
+      homepage: 'README.md',
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      }
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
