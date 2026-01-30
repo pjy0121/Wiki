@@ -122,6 +122,40 @@
             transform: scale(1.03);
         }
 
+        /* Image Hover Overlay */
+        .gallery-main a {
+            position: relative;
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .gallery-main a:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .overlay-text {
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.8);
+        }
+
         /* Thumbnail Strip */
         .gallery-thumbs {
             display: flex;
@@ -458,6 +492,7 @@
                             <a href="https://pjy0121.github.io/MultiModelGenerator/" target="_blank">
                                 <img src="https://pjy0121.github.io/MultiModelGenerator/assets/example_workflow.png"
                                      alt="MultiModelGenerator - Workflow Overview">
+                                <div class="image-overlay"><span class="overlay-text">View Details</span></div>
                             </a>
                         </div>
                         <div class="gallery-thumbs">
@@ -513,6 +548,7 @@
                             <a href="https://springfrog.netlify.app/" target="_blank">
                                 <img src="https://springfrog.netlify.app/assets/images/Seasons.png"
                                      alt="SpringFrog - Four Seasons Theme">
+                                <div class="image-overlay"><span class="overlay-text">View Details</span></div>
                             </a>
                         </div>
                         <div class="gallery-thumbs">
@@ -570,6 +606,7 @@
                             <a href="https://pjy0121.github.io/FastLink/" target="_blank">
                                 <img src="https://pjy0121.github.io/FastLink/assets/FastLink.png"
                                      alt="FastLink - Main Screen">
+                                <div class="image-overlay"><span class="overlay-text">View Details</span></div>
                             </a>
                         </div>
                         <div class="gallery-thumbs">
@@ -627,6 +664,7 @@
                             <a href="https://dailyxquest.netlify.app/" target="_blank">
                                 <img src="https://dailyxquest.netlify.app/assets/running_quests.png"
                                      alt="Daily Quest - Running Quests">
+                                <div class="image-overlay"><span class="overlay-text">View Details</span></div>
                             </a>
                         </div>
                         <div class="gallery-thumbs">
