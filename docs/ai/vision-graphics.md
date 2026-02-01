@@ -72,6 +72,21 @@
 | **Canny** | 엣지 검출 (복합 알고리즘) |
 | **Sharpening** | 선명도 향상 |
 
+### ⭕ 데이터 증강 (Data Augmentation) ◑
+
+학습 데이터를 변형하여 모델의 일반화 성능을 높이는 기법이다.
+
+| 기법 | 설명 |
+|------|------|
+| **기하학적 변환** | 회전, 이동, 반전, 크롭 |
+| **색상 변환** | 밝기, 대비, 채도, 색조 조정 |
+| **노이즈 추가** | Gaussian 노이즈, Salt-and-Pepper |
+| **Cutout/Erasing** | 이미지 일부 영역 제거 |
+| **Mixup** | 두 이미지와 레이블을 선형 결합 |
+| **CutMix** | 이미지 영역 교체 |
+
+**효과:** 과적합 방지, 학습 데이터 부족 보완
+
 ---
 
 ## 3. CNN (Convolutional Neural Network) ◑
@@ -116,6 +131,25 @@ Output = (Input - Kernel + 2×Padding) / Stride + 1
 - 계산량 감소
 - 위치 변화에 대한 불변성 (Translation Invariance)
 - 과적합 방지
+
+### ⭕ Batch Normalization ◑
+
+각 층의 입력을 정규화하여 학습을 안정화하는 기법이다.
+
+```
+입력 → 정규화 (평균 0, 분산 1) → 스케일/시프트 (γ, β 학습) → 출력
+```
+
+| 효과 | 설명 |
+|------|------|
+| 학습 속도 향상 | 큰 학습률 사용 가능 |
+| 기울기 소실 완화 | 활성화 값 범위 유지 |
+| 정규화 효과 | Dropout 대체 가능 |
+| 초기화 민감도 감소 | 가중치 초기값에 덜 민감 |
+
+**배치 정규화 vs 레이어 정규화:**
+- Batch Norm: 배치 차원으로 정규화 (CNN에 주로 사용)
+- Layer Norm: 특징 차원으로 정규화 (Transformer에 주로 사용)
 
 ### 주요 CNN 아키텍처 ◑
 
@@ -162,6 +196,22 @@ x → Conv → ReLU → Conv → (+) → ReLU → output
 | 동시 예측 | 바운딩 박스, 신뢰도, 클래스 확률 |
 | 실시간 처리 | 높은 FPS (실시간 가능) |
 
+### ⭕ NMS (Non-Maximum Suppression) ◑
+
+중복된 바운딩 박스를 제거하는 후처리 알고리즘이다.
+
+```
+1. 신뢰도 순으로 박스 정렬
+2. 가장 높은 신뢰도 박스 선택
+3. 선택된 박스와 IoU가 임계값 이상인 박스 제거
+4. 남은 박스에 대해 2-3 반복
+```
+
+| 변형 | 설명 |
+|------|------|
+| **Soft-NMS** | 완전 제거 대신 점수 감소 |
+| **DIoU-NMS** | 중심 거리도 고려 |
+
 ### 평가 지표 ◑
 
 | 지표 | 설명 |
@@ -170,6 +220,12 @@ x → Conv → ReLU → Conv → (+) → ReLU → output
 | **Precision** | 예측 중 정답 비율 |
 | **Recall** | 정답 중 예측된 비율 |
 | **mAP** | Mean Average Precision, 클래스별 AP 평균 |
+
+**IoU 계산:**
+```
+IoU = (교집합 면적) / (합집합 면적)
+```
+일반적으로 IoU > 0.5이면 정답으로 판정 (PASCAL VOC 기준)
 
 ---
 
@@ -397,6 +453,24 @@ I = Ambient + Diffuse + Specular
 | **레이 트레이싱** | 광선 추적, 사실적인 반사/굴절 |
 | **패스 트레이싱** | 전역 조명, 가장 사실적 |
 
+### ⭕ 안티 앨리어싱 (Anti-Aliasing) ◑
+
+계단 현상(Aliasing)을 줄이는 기법이다.
+
+| 기법 | 설명 | 성능 |
+|------|------|------|
+| **MSAA** | 픽셀 경계에서 다중 샘플링 | 중간 |
+| **SSAA** | 고해상도 렌더링 후 다운샘플링 | 느림 |
+| **FXAA** | 후처리 필터 기반 | 빠름 |
+| **TAA** | 시간적 샘플링 (이전 프레임 활용) | 빠름 |
+
+### Forward vs Deferred Rendering ◑
+
+| 방식 | 특징 | 적합한 상황 |
+|------|------|-------------|
+| **Forward** | 각 객체마다 조명 계산 | 조명 적음, 투명 객체 |
+| **Deferred** | G-Buffer에 정보 저장 후 조명 계산 | 다수의 동적 조명 |
+
 ---
 
 ## 면접 대비 체크리스트 ◑
@@ -405,8 +479,11 @@ I = Ambient + Diffuse + Specular
 - [ ] CNN의 구성 요소 (Convolution, Pooling, FC)
 - [ ] 합성곱 연산과 출력 크기 계산
 - [ ] Pooling의 역할과 종류
+- [ ] Batch Normalization 효과 ◑
 - [ ] ResNet Skip Connection
+- [ ] 데이터 증강 기법 ◑
 - [ ] YOLO 등 객체 탐지 모델 특징
+- [ ] NMS (Non-Maximum Suppression) ◑
 - [ ] IoU, mAP 평가 지표
 - [ ] Semantic vs Instance Segmentation
 
@@ -417,3 +494,5 @@ I = Ambient + Diffuse + Specular
 - [ ] Phong 조명 모델 (Ambient, Diffuse, Specular)
 - [ ] 텍스처 매핑과 UV 좌표
 - [ ] 래스터화 vs 레이 트레이싱
+- [ ] 안티 앨리어싱 기법 ◑
+- [ ] Forward vs Deferred Rendering ◑

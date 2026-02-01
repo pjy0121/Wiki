@@ -95,6 +95,51 @@
 | **블랙박스** | 내부 구조 모르고 입출력만 테스트 |
 | **화이트박스** | 내부 구조 알고 코드 기반 테스트 |
 
+### ⭕ 테스트 피라미드를 설명하라 ◑
+
+```
+               ▲
+              /│\
+             / │ \        E2E/UI 테스트 (느림, 비쌈)
+            /  │  \       - 브라우저 자동화 (Selenium, Playwright)
+           /   │   \
+          /────┼────\
+         /     │     \    통합 테스트 (API, DB)
+        /      │      \   - API 테스트, DB 연동
+       /───────┼───────\
+      /        │        \ 단위 테스트 (빠름, 저렴)
+     /         │         \ - 함수/클래스 단위
+    ▼──────────┴──────────▼
+```
+
+| 레벨 | 속도 | 비용 | 비율 |
+|------|------|------|------|
+| **단위 테스트** | 빠름 | 저렴 | 많이 (70%) |
+| **통합 테스트** | 중간 | 중간 | 적당히 (20%) |
+| **E2E 테스트** | 느림 | 비쌈 | 적게 (10%) |
+
+**핵심:** 피라미드 아래로 갈수록 테스트가 많아야 함
+
+### TDD (Test-Driven Development) ◑
+
+```
+1. Red: 실패하는 테스트 작성
+           │
+           ▼
+2. Green: 테스트 통과하는 최소 코드 작성
+           │
+           ▼
+3. Refactor: 코드 개선 (테스트 유지)
+           │
+           └───────▶ 1로 반복
+```
+
+| 장점 | 단점 |
+|------|------|
+| 설계 개선 | 초기 개발 시간 증가 |
+| 회귀 방지 | 학습 곡선 |
+| 문서화 역할 | 테스트 유지보수 비용 |
+
 ---
 
 ## 4. CI/CD
@@ -313,6 +358,68 @@ Subject (Publisher)
 | 서비스별 확장 요구 다름 | 빠른 MVP 개발 |
 | 장기적 유지보수 예상 | 도메인 경계가 불명확 |
 
+### DDD (Domain-Driven Design) 기초 ◑
+
+#### ⭕ DDD의 핵심 개념을 설명하라 ◑
+
+| 개념 | 설명 |
+|------|------|
+| **Domain** | 비즈니스 문제 영역 |
+| **Ubiquitous Language** | 개발자와 도메인 전문가가 공유하는 언어 |
+| **Bounded Context** | 특정 모델이 적용되는 경계 |
+| **Context Map** | Bounded Context 간의 관계 |
+
+#### 전략적 설계 ◑
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     시스템 전체                          │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────┐  │
+│  │   주문 BC     │    │   배송 BC     │    │  결제 BC │  │
+│  │  ┌────────┐  │    │  ┌────────┐  │    │          │  │
+│  │  │ Order  │  │◀───│  │ Order  │  │    │          │  │
+│  │  └────────┘  │    │  └────────┘  │    │          │  │
+│  │  (상세 모델)  │    │  (간단 모델)  │    │          │  │
+│  └──────────────┘    └──────────────┘    └──────────┘  │
+│        각 BC에서 "Order"는 다른 의미와 속성을 가짐        │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 전술적 설계 (빌딩 블록) ◑
+
+| 개념 | 설명 | 예시 |
+|------|------|------|
+| **Entity** | 식별자로 구분, 생명주기 있음 | User, Order |
+| **Value Object** | 속성으로 구분, 불변 | Address, Money |
+| **Aggregate** | 일관성 경계를 가진 엔티티 그룹 | Order + OrderLine |
+| **Aggregate Root** | 애그리거트의 진입점 | Order |
+| **Repository** | 애그리거트 영속화 인터페이스 | OrderRepository |
+| **Domain Service** | 엔티티에 속하지 않는 도메인 로직 | TransferService |
+| **Domain Event** | 도메인에서 발생한 사건 | OrderPlaced |
+
+#### Entity vs Value Object ◑
+
+| 구분 | Entity | Value Object |
+|------|--------|--------------|
+| 식별 | ID로 구분 | 속성값으로 구분 |
+| 변경 | 상태 변경 가능 | 불변 (새 객체 생성) |
+| 비교 | ID 비교 | 모든 속성 비교 |
+| 예시 | User(id=1) | Money(100, "USD") |
+
+```java
+// Entity: ID로 구분
+User user1 = new User(1, "Kim");
+User user2 = new User(1, "Kim");
+user1.equals(user2);  // true (같은 ID)
+
+// Value Object: 속성으로 구분, 불변
+Money money1 = new Money(100, "USD");
+Money money2 = new Money(100, "USD");
+money1.equals(money2);  // true (같은 값)
+
+Money money3 = money1.add(50);  // 새 객체 반환
+```
+
 ### 주요 아키텍처 스타일 ◑
 
 #### Layered Architecture (계층형) ◑
@@ -448,6 +555,8 @@ Event Store:
 - [ ] 애자일 vs 워터폴 차이
 - [ ] Verification vs Validation
 - [ ] CI/CD 파이프라인
+- [ ] 테스트 피라미드
+- [ ] TDD (Red-Green-Refactor)
 
 **OOP와 설계 원칙**
 - [ ] OOP 4대 특성
@@ -462,6 +571,12 @@ Event Store:
 - [ ] Factory Method vs Abstract Factory 차이
 - [ ] Adapter vs Facade vs Proxy 차이
 - [ ] Strategy vs State 차이
+
+**DDD (Domain-Driven Design)**
+- [ ] Bounded Context
+- [ ] Entity vs Value Object
+- [ ] Aggregate와 Aggregate Root
+- [ ] Repository 패턴
 
 **아키텍처**
 - [ ] 모놀리식 vs 마이크로서비스

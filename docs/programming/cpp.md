@@ -112,6 +112,37 @@ class Derived : public Base {
 | protected | protected | protected | 접근 불가 |
 | private | private | private | 접근 불가 |
 
+### ⭕ 다중 상속과 다이아몬드 문제 ◑
+
+```cpp
+class A { public: int value; };
+class B : public A { };
+class C : public A { };
+class D : public B, public C { };  // 다이아몬드 상속
+
+D d;
+// d.value;  // 에러! B::value인지 C::value인지 모호
+d.B::value = 1;  // 명시적 접근
+```
+
+**가상 상속**으로 해결:
+
+```cpp
+class A { public: int value; };
+class B : virtual public A { };  // 가상 상속
+class C : virtual public A { };  // 가상 상속
+class D : public B, public C { };
+
+D d;
+d.value = 1;  // OK! A의 인스턴스가 하나만 존재
+```
+
+| 문제 | 일반 다중 상속 | 가상 상속 |
+|------|--------------|----------|
+| 기반 클래스 인스턴스 | 여러 개 | 하나 |
+| 메모리 | 더 작음 | vptr 추가 오버헤드 |
+| 성능 | 빠름 | 약간 느림 |
+
 ### ⭕ 가상 함수란? 가상 소멸자는 왜 필요한가?
 
 ```cpp
@@ -161,6 +192,72 @@ auto p2 = std::make_shared<MyClass>();   // shared_ptr
 Resource Acquisition Is Initialization
 
 자원 획득을 객체 초기화에, 해제를 소멸자에 맡겨 자원 누수를 방지하는 패턴이다. 스마트 포인터, lock_guard 등이 이 패턴을 따른다.
+
+### ⭕ Rule of Three/Five/Zero ◑
+
+자원을 관리하는 클래스가 지켜야 할 규칙이다.
+
+**Rule of Three** (C++98): 아래 중 하나를 정의하면 나머지도 정의해야 한다.
+- 소멸자
+- 복사 생성자
+- 복사 대입 연산자
+
+**Rule of Five** (C++11): 이동 의미론 추가
+- 소멸자
+- 복사 생성자
+- 복사 대입 연산자
+- 이동 생성자
+- 이동 대입 연산자
+
+```cpp
+class Resource {
+    int* data;
+public:
+    // 생성자
+    Resource(int value) : data(new int(value)) {}
+
+    // 소멸자
+    ~Resource() { delete data; }
+
+    // 복사 생성자
+    Resource(const Resource& other) : data(new int(*other.data)) {}
+
+    // 복사 대입 연산자
+    Resource& operator=(const Resource& other) {
+        if (this != &other) {
+            delete data;
+            data = new int(*other.data);
+        }
+        return *this;
+    }
+
+    // 이동 생성자
+    Resource(Resource&& other) noexcept : data(other.data) {
+        other.data = nullptr;
+    }
+
+    // 이동 대입 연산자
+    Resource& operator=(Resource&& other) noexcept {
+        if (this != &other) {
+            delete data;
+            data = other.data;
+            other.data = nullptr;
+        }
+        return *this;
+    }
+};
+```
+
+**Rule of Zero**: 가능하면 직접 자원 관리하지 않고 스마트 포인터 등을 사용하여 컴파일러가 생성하는 기본 함수를 사용한다.
+
+```cpp
+class Modern {
+    std::unique_ptr<int> data;  // 자동 자원 관리
+public:
+    Modern(int value) : data(std::make_unique<int>(value)) {}
+    // 소멸자, 복사/이동 생성자/대입 연산자 불필요
+};
+```
 
 ---
 
@@ -255,12 +352,73 @@ auto lambda = [capture](params) -> return_type {
 auto add = [](int a, int b) { return a + b; };
 ```
 
+**캡처 방식:**
+
+| 캡처 | 설명 |
+|------|------|
+| `[]` | 캡처 없음 |
+| `[=]` | 모든 외부 변수 값으로 캡처 |
+| `[&]` | 모든 외부 변수 참조로 캡처 |
+| `[x]` | x만 값으로 캡처 |
+| `[&x]` | x만 참조로 캡처 |
+| `[=, &x]` | 기본 값, x만 참조 |
+| `[this]` | 멤버 접근용 |
+
+### ⭕ lvalue와 rvalue ◑
+
+```cpp
+int x = 10;       // x는 lvalue, 10은 rvalue
+int y = x + 5;    // x + 5는 rvalue
+
+int& ref = x;     // OK: lvalue 참조
+// int& ref = 10; // 에러: rvalue에 lvalue 참조 불가
+
+int&& rref = 10;  // OK: rvalue 참조 (C++11)
+```
+
+| 구분 | lvalue | rvalue |
+|------|--------|--------|
+| 정의 | 메모리 주소를 가진 식별 가능한 객체 | 임시 객체, 주소 없음 |
+| 예시 | 변수, 배열 원소, *ptr | 리터럴, 임시 객체, x+y |
+| 참조 | `T&` | `T&&` |
+
 ### 이동 의미론
+
+깊은 복사 대신 자원의 소유권을 이전하여 성능을 향상시킨다.
 
 ```cpp
 std::vector<int> v1 = {1, 2, 3};
 std::vector<int> v2 = std::move(v1);  // v1의 자원을 v2로 이동
+// v1은 이제 비어있음 (valid but unspecified state)
 ```
+
+**std::move의 역할:**
+
+```cpp
+// std::move는 lvalue를 rvalue로 캐스팅할 뿐
+template<typename T>
+typename remove_reference<T>::type&& move(T&& t) {
+    return static_cast<typename remove_reference<T>::type&&>(t);
+}
+```
+
+### ⭕ 복사 생략 (Copy Elision) / RVO ◑
+
+컴파일러가 불필요한 복사/이동을 제거하는 최적화이다.
+
+```cpp
+std::string createString() {
+    return std::string("Hello");  // RVO 적용 가능
+}
+
+std::string s = createString();  // 복사 없이 직접 생성
+```
+
+| 종류 | 설명 |
+|------|------|
+| RVO (Return Value Optimization) | 반환값 최적화 |
+| NRVO (Named RVO) | 지역 변수 반환 시 최적화 |
+| 복사 생략 | C++17부터 보장됨 |
 
 ---
 
@@ -299,6 +457,37 @@ target_link_libraries(main ${LIBS})
 | `dynamic_cast` | 다형성 타입의 안전한 다운캐스팅 |
 | `const_cast` | const 제거/추가 |
 | `reinterpret_cast` | 비트 레벨 재해석 (위험) |
+
+### ⭕ const 정확성 (const Correctness) ◑
+
+```cpp
+// 포인터와 const
+const int* p1;        // 가리키는 값이 const (읽기 전용 데이터)
+int* const p2;        // 포인터 자체가 const (다른 주소 지정 불가)
+const int* const p3;  // 둘 다 const
+
+// 멤버 함수와 const
+class MyClass {
+    int value;
+public:
+    int getValue() const { return value; }  // 객체 상태 변경 안 함
+    void setValue(int v) { value = v; }
+};
+
+const MyClass obj;
+obj.getValue();  // OK
+// obj.setValue(10);  // 에러: const 객체에서 non-const 함수 호출 불가
+```
+
+**const 사용 원칙:**
+- 변경하지 않는 매개변수는 `const &`로 전달
+- 객체 상태를 변경하지 않는 멤버 함수에 `const` 지정
+- 반환값이 수정되면 안 될 때 `const` 반환
+
+```cpp
+// 좋은 예
+void process(const std::string& str);  // 불필요한 복사 방지, 원본 보호
+```
 
 ---
 
@@ -527,10 +716,15 @@ void safe_func2() {
 - [ ] 포인터 vs 참조
 - [ ] 가상 함수와 vtable
 - [ ] 가상 소멸자가 필요한 이유
+- [ ] 다중 상속과 다이아몬드 문제, 가상 상속 ◑
 - [ ] 스마트 포인터 (unique_ptr, shared_ptr, weak_ptr)
 - [ ] RAII 패턴
+- [ ] Rule of Three/Five/Zero ◑
+- [ ] lvalue vs rvalue, rvalue 참조 ◑
 - [ ] 복사 vs 이동 의미론
-- [ ] Lambda 표현식
+- [ ] Copy Elision / RVO ◑
+- [ ] Lambda 표현식과 캡처 ◑
+- [ ] const 정확성 ◑
 - [ ] STL 컨테이너별 특징
 - [ ] C++ 캐스팅 종류
 - [ ] std::thread, mutex, lock_guard
