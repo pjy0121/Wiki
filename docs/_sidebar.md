@@ -32,3 +32,6 @@
 
 * **Part 8. 블록체인**
   * [18. 블록체인](blockchain.md)
+
+* **Articles**
+  * [The Software Bug That Killed People: Therac-25](articles/2026-03-26-therac-25-killer-bug.md)
